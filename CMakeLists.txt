@@ -32,8 +32,24 @@ find_path(TMXLITE_INCLUDE_DIR
     REQUIRED
 )
 
+# Use GLOB to automatically find source files
+file(GLOB_RECURSE SOURCES 
+    "src/main.cpp"
+    "src/private/*.cpp"
+)
+
+file(GLOB_RECURSE HEADERS 
+    "src/public/*.h"
+)
+
 # Create the executable
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+# Add include directories
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    src/
+    ${TMXLITE_INCLUDE_DIR}
+)
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -50,9 +66,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glad::glad
     imgui::imgui
 )
-
-# Add tmxlite include directory
-target_include_directories(${PROJECT_NAME} PRIVATE ${TMXLITE_INCLUDE_DIR})
 
 # Copy assets folder to build directory
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
