@@ -138,6 +138,69 @@ if (-not $NoGitSetup) {
     }
 }
 
+# Project Configuration
+Write-Host ""
+Write-Host "🏷️  Project Configuration" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Current project name: SDL2Template" -ForegroundColor White
+$projectName = Read-Host "Enter your project name (or press Enter to keep 'SDL2Template')"
+
+# Trim whitespace
+$projectName = $projectName.Trim()
+
+if (-not [string]::IsNullOrEmpty($projectName) -and $projectName -ne "SDL2Template") {
+    Write-Host "🔧 Renaming project to: $projectName" -ForegroundColor Blue
+    
+    # Validate project name (basic validation)
+    if ($projectName -notmatch "^[a-zA-Z][a-zA-Z0-9_-]*$") {
+        Write-Host "⚠️  Warning: Project name should start with a letter and contain only letters, numbers, hyphens, and underscores" -ForegroundColor Yellow
+        Write-Host "   Proceeding anyway..." -ForegroundColor White
+    }
+    
+    try {
+        # Update CMakeLists.txt
+        if (Test-Path "CMakeLists.txt") {
+            $content = Get-Content "CMakeLists.txt" -Raw
+            $content = $content -replace "project\(SDL2Template", "project($projectName"
+            Set-Content "CMakeLists.txt" $content
+            Write-Host "  ✅ Updated CMakeLists.txt" -ForegroundColor Green
+        }
+        
+        # Update vcpkg.json
+        if (Test-Path "vcpkg.json") {
+            # Convert to lowercase and replace spaces/special chars with hyphens for package name
+            $packageName = $projectName.ToLower() -replace "[^a-z0-9]", "-" -replace "-+", "-" -replace "^-|-$", ""
+            $content = Get-Content "vcpkg.json" -Raw
+            $content = $content -replace '"name": "sdl2-template"', "`"name`": `"$packageName`""
+            Set-Content "vcpkg.json" $content
+            Write-Host "  ✅ Updated vcpkg.json (package name: $packageName)" -ForegroundColor Green
+        }
+        
+        # Update README.md
+        if (Test-Path "README.md") {
+            $content = Get-Content "README.md" -Raw
+            $content = $content -replace "# SDL2 Game Development Template", "# $projectName"
+            $content = $content -replace "SDL2 Template", $projectName
+            Set-Content "README.md" $content
+            Write-Host "  ✅ Updated README.md" -ForegroundColor Green
+        }
+        
+        Write-Host ""
+        Write-Host "✅ Project renamed successfully!" -ForegroundColor Green
+        Write-Host "   Executable will be named: $projectName.exe" -ForegroundColor White
+        Write-Host ""
+    }
+    catch {
+        Write-Host "❌ Failed to rename project: $_" -ForegroundColor Red
+        Write-Host "   Continuing with original name..." -ForegroundColor White
+        Write-Host ""
+    }
+}
+else {
+    Write-Host "ℹ️  Keeping project name as 'SDL2Template'" -ForegroundColor Blue
+    Write-Host ""
+}
+
 # Install dependencies
 Write-Host "📚 Installing project dependencies..." -ForegroundColor Blue
 try {

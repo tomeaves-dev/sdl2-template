@@ -123,6 +123,62 @@ else
     echo ""
 fi
 
+# Project Configuration
+echo ""
+echo "🏷️  Project Configuration"
+echo ""
+echo "Current project name: SDL2Template"
+read -p "Enter your project name (or press Enter to keep 'SDL2Template'): " PROJECT_NAME
+
+# Trim whitespace and validate project name
+PROJECT_NAME=$(echo "$PROJECT_NAME" | xargs)
+
+if [ ! -z "$PROJECT_NAME" ] && [ "$PROJECT_NAME" != "SDL2Template" ]; then
+    echo "🔧 Renaming project to: $PROJECT_NAME"
+    
+    # Validate project name (basic validation)
+    if [[ ! "$PROJECT_NAME" =~ ^[a-zA-Z][a-zA-Z0-9_-]*$ ]]; then
+        echo "⚠️  Warning: Project name should start with a letter and contain only letters, numbers, hyphens, and underscores"
+        echo "   Proceeding anyway..."
+    fi
+    
+    # Update CMakeLists.txt
+    if [ -f "CMakeLists.txt" ]; then
+        sed -i.bak "s/project(SDL2Template/project($PROJECT_NAME/g" CMakeLists.txt
+        rm -f CMakeLists.txt.bak
+        echo "  ✅ Updated CMakeLists.txt"
+    fi
+    
+    # Update vcpkg.json
+    if [ -f "vcpkg.json" ]; then
+        # Convert to lowercase and replace spaces/special chars with hyphens for package name
+        PACKAGE_NAME=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+        sed -i.bak "s/\"name\": \"sdl2-template\"/\"name\": \"$PACKAGE_NAME\"/g" vcpkg.json
+        rm -f vcpkg.json.bak
+        echo "  ✅ Updated vcpkg.json (package name: $PACKAGE_NAME)"
+    fi
+    
+    # Update README.md title
+    if [ -f "README.md" ]; then
+        sed -i.bak "s/# SDL2 Game Development Template/# $PROJECT_NAME/g" README.md
+        sed -i.bak "s/SDL2 Template/$PROJECT_NAME/g" README.md
+        rm -f README.md.bak
+        echo "  ✅ Updated README.md"
+    fi
+    
+    echo ""
+    echo "✅ Project renamed successfully!"
+    echo "   Executable will be named: $PROJECT_NAME"
+    echo ""
+else
+    echo "ℹ️  Keeping project name as 'SDL2Template'"
+    echo ""
+fi
+
+# Install dependencies
+echo "📚 Installing project dependencies..."
+"$VCPKG_PATH/vcpkg" install
+
 # Initial build
 echo "🔨 Building project..."
 mkdir -p build

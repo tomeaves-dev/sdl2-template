@@ -85,8 +85,9 @@ cd C:\vcpkg
 
 ```bash
 # Clone this template with your own project name
-git clone https://github.com/yourusername/sdl2-template.git my-awesome-game
-cd my-awesome-game
+# Replace 'your-game-name' with whatever you want to call your project
+git clone https://github.com/tomeaves-dev/sdl2-template.git your-game-name
+cd your-game-name
 
 # One-command setup (auto-detects your platform)
 make setup
@@ -98,6 +99,7 @@ make run
 **That's it!** The setup command will:
 - Install vcpkg and all dependencies automatically
 - Optionally disconnect from template repo and create your own
+- Let you rename the project from "SDL2Template" to whatever you want
 - Build the project
 - Get you ready to start developing
 
@@ -228,7 +230,7 @@ sdl2-template/
 This template provides a complete setup for 2D game development with a modern C++ architecture:
 
 ### Getting Started
-1. **Clone and Setup**: Use `make setup` for automatic configuration
+1. **Clone and Setup**: Use `make setup` for automatic configuration and project naming
 2. **Start Coding**: Develop your game using the provided class structure
 3. **Add Assets**: Place textures, audio, and maps in `assets/`
 4. **Build and Run**: Use `make run` for quick iteration
@@ -289,23 +291,18 @@ make install      # Update dependencies (when adding new libs)
 
 ### Renaming Your Project
 
-To rename the project from "sdl2-template" to your game name:
+The setup script will automatically offer to rename your project from "SDL2Template" to your preferred name. This updates:
 
-1. **Update CMakeLists.txt**: Change the project name on line 4:
-   ```cmake
-   project(YourGameName VERSION 1.0.0)
-   ```
+1. **CMakeLists.txt**: Changes the executable name
+2. **vcpkg.json**: Updates the package name  
+3. **README.md**: Updates project title and references
 
-2. **Update vcpkg.json**: Change the name field:
-   ```json
-   {
-     "name": "yourgamename",
-     "version": "1.0.0",
-     ...
-   }
-   ```
+You can also rename manually later by editing these files, or run the rename process again:
 
-3. **Rebuild**: The executable will now be named `YourGameName` instead of `SDL2Template`
+```bash
+# Re-run just the setup to rename
+make setup
+```
 
 ### Adding New Dependencies
 

@@ -125,6 +125,55 @@ echo ℹ️  Keeping connection to template repository.
 echo    You can pull template updates with: git pull
 echo.
 
+:project_config
+:: Project Configuration
+echo.
+echo 🏷️  Project Configuration
+echo.
+echo Current project name: SDL2Template
+set /p "PROJECT_NAME=Enter your project name (or press Enter to keep 'SDL2Template'): "
+
+:: Trim whitespace
+for /f "tokens=* delims= " %%a in ("%PROJECT_NAME%") do set PROJECT_NAME=%%a
+for /l %%a in (1,1,100) do if "!PROJECT_NAME:~-1!"==" " set PROJECT_NAME=!PROJECT_NAME:~0,-1!
+
+if not "%PROJECT_NAME%"=="" if not "%PROJECT_NAME%"=="SDL2Template" (
+    echo 🔧 Renaming project to: !PROJECT_NAME!
+    
+    :: Update CMakeLists.txt
+    if exist "CMakeLists.txt" (
+        powershell -Command "(Get-Content CMakeLists.txt) -replace 'project\(SDL2Template', 'project(!PROJECT_NAME!' | Set-Content CMakeLists.txt"
+        echo   ✅ Updated CMakeLists.txt
+    )
+    
+    :: Update vcpkg.json (create lowercase package name)
+    if exist "vcpkg.json" (
+        :: Convert to lowercase and replace special chars
+        for %%i in ("!PROJECT_NAME!") do set "PACKAGE_NAME=%%~i"
+        for %%i in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
+            call set "PACKAGE_NAME=%%PACKAGE_NAME:%%i=%%i%%"
+        )
+        set "PACKAGE_NAME=!PACKAGE_NAME: =-!"
+        powershell -Command "(Get-Content vcpkg.json) -replace '\"name\": \"sdl2-template\"', '\"name\": \"!PACKAGE_NAME!\"' | Set-Content vcpkg.json"
+        echo   ✅ Updated vcpkg.json
+    )
+    
+    :: Update README.md
+    if exist "README.md" (
+        powershell -Command "(Get-Content README.md) -replace '# SDL2 Game Development Template', '# !PROJECT_NAME!' | Set-Content README.md"
+        powershell -Command "(Get-Content README.md) -replace 'SDL2 Template', '!PROJECT_NAME!' | Set-Content README.md"
+        echo   ✅ Updated README.md
+    )
+    
+    echo.
+    echo ✅ Project renamed successfully!
+    echo    Executable will be named: !PROJECT_NAME!.exe
+    echo.
+) else (
+    echo ℹ️  Keeping project name as 'SDL2Template'
+    echo.
+)
+
 :build_project
 :: Install dependencies
 echo 📚 Installing project dependencies...
