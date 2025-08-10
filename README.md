@@ -20,17 +20,24 @@ A modern C++ game development template using SDL2 and popular game development l
 
 ### Prerequisites
 
-- **macOS**, Linux, or Windows
-- **CMake 3.20+**
-- **vcpkg** package manager
+- **macOS, Linux, or Windows**
+- **Git** (for cloning and vcpkg)
 - **C++20** compatible compiler
-- **pkg-config** (macOS/Linux)
+- Platform-specific build tools (auto-installed by setup script):
+  - **macOS**: Xcode Command Line Tools, Homebrew
+  - **Linux**: build-essential, cmake, pkg-config  
+  - **Windows**: Visual Studio 2019+ with C++ workload
 
-### macOS Setup
+### Platform Setup (Optional - Handled by Scripts)
+
+<details>
+<summary>Manual platform setup (only if auto-setup fails)</summary>
+
+#### macOS Setup
 
 ```bash
 # Install dependencies via Homebrew
-brew install cmake pkg-config
+brew install cmake pkg-config git
 
 # Clone and setup vcpkg
 git clone https://github.com/Microsoft/vcpkg.git ~/vcpkg
@@ -42,12 +49,12 @@ echo 'export PATH="$HOME/vcpkg:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### Linux Setup
+#### Linux Setup
 
 ```bash
 # Ubuntu/Debian
 sudo apt update
-sudo apt install cmake pkg-config build-essential
+sudo apt install cmake pkg-config build-essential git curl zip unzip tar
 
 # Clone and setup vcpkg
 git clone https://github.com/Microsoft/vcpkg.git ~/vcpkg
@@ -59,10 +66,10 @@ echo 'export PATH="$HOME/vcpkg:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### Windows Setup
+#### Windows Setup
 
-```bash
-# Install vcpkg (run in PowerShell as Administrator)
+```cmd
+# Install vcpkg (run in Command Prompt as Administrator)
 git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
 cd C:\vcpkg
 .\bootstrap-vcpkg.bat
@@ -70,142 +77,213 @@ cd C:\vcpkg
 # Add to PATH or use full path in cmake commands
 ```
 
+</details>
+
 ## 🔨 Build Instructions
 
-### Option 1: Using CMake Presets (Recommended)
+### Quick Start (Recommended)
 
 ```bash
-# Clone this template
+# Clone this template with your own project name
 git clone https://github.com/yourusername/sdl2-template.git my-awesome-game
 cd my-awesome-game
 
-# Disconnect from template repository and set up your own
-rm -rf .git
-git init
-git add .
-git commit -m "Initial commit from SDL2 template"
+# One-command setup (auto-detects your platform)
+make setup
 
-# Connect to your own GitHub repository (create one first on GitHub)
-git remote add origin https://github.com/yourusername/my-awesome-game.git
-git branch -M main
-git push -u origin main
-
-# Install all dependencies (first time only)
-vcpkg install
-
-# Configure and build using presets
-cmake --preset default
-cmake --build build
-
-# Run the test program
-./build/SDL2Template      # macOS/Linux
-# OR
-.\build\SDL2Template.exe  # Windows
+# Run your game
+make run
 ```
 
-### Option 2: Manual CMake Configuration
+**That's it!** The setup command will:
+- Install vcpkg and all dependencies automatically
+- Optionally disconnect from template repo and create your own
+- Build the project
+- Get you ready to start developing
 
+### Alternative Setup Methods
+
+#### Option 1: Using Make Commands (Cross-Platform)
 ```bash
-# Clone this template
-git clone https://github.com/yourusername/sdl2-template.git my-awesome-game
-cd my-awesome-game
+make setup     # First-time setup
+make build     # Build the project  
+make run       # Build and run
+make clean     # Clean build files
+make debug     # Build in debug mode
+make release   # Build in release mode
+```
 
-# Disconnect from template repository and set up your own
-rm -rf .git
-git init
-git add .
-git commit -m "Initial commit from SDL2 template"
+#### Option 2: Using Platform-Agnostic Scripts
+```bash
+./scripts/setup    # Auto-detects platform
+./scripts/build
+./scripts/run
+./scripts/clean
+./scripts/install  # Update dependencies
+```
 
-# Connect to your own GitHub repository (create one first on GitHub)
-git remote add origin https://github.com/yourusername/my-awesome-game.git
-git branch -M main
-git push -u origin main
+#### Option 3: Platform-Specific Scripts
 
-# Install all dependencies (first time only)
-vcpkg install
+**Unix/Linux/macOS:**
+```bash
+./scripts/unix/setup.sh
+./scripts/unix/build.sh
+./scripts/unix/run.sh
+```
 
+**Windows (Command Prompt):**
+```cmd
+scripts\windows\setup.bat
+scripts\windows\build.bat
+scripts\windows\run.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\powershell\setup.ps1
+.\scripts\powershell\build.ps1
+.\scripts\powershell\run.ps1
+```
+
+### Manual Installation (If Auto-Setup Fails)
+
+<details>
+<summary>Click to expand manual installation instructions</summary>
+
+#### Prerequisites
+- **macOS**: Xcode Command Line Tools, Homebrew
+- **Linux**: build-essential, cmake, pkg-config, git
+- **Windows**: Visual Studio 2019+ with C++ workload
+
+#### Install vcpkg
+```bash
+# macOS/Linux
+git clone https://github.com/Microsoft/vcpkg.git ~/vcpkg
+cd ~/vcpkg && ./bootstrap-vcpkg.sh
+
+# Windows
+git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+cd C:\vcpkg && .\bootstrap-vcpkg.bat
+```
+
+#### Build Project
+```bash
 # Create build directory
 mkdir build && cd build
 
-# Configure with vcpkg toolchain
-# macOS/Linux:
+# Configure (adjust vcpkg path for your system)
 cmake .. -DCMAKE_TOOLCHAIN_FILE=$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake
 
-# Windows:
-cmake .. -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
-
-# Build the project
-make          # macOS/Linux
-# OR
-cmake --build . --config Release  # Windows/Cross-platform
-
-# Run the test program
-./SDL2Template      # macOS/Linux
-# OR
-.\SDL2Template.exe  # Windows
+# Build
+make  # or cmake --build . --config Release
 ```
+
+</details>
 
 ## 📁 Project Structure
 
 ```
 sdl2-template/
-├── src/                    # Source code
-│   └── main.cpp           # Entry point with library tests
-├── assets/                # Game assets
-│   ├── textures/          # Images, sprites, tilesets
-│   ├── audio/             # Sound effects and music
-│   └── maps/              # Tiled map files (.tmx)
-├── .vscode/               # VSCode configuration
-│   └── settings.json      # Shared IDE settings
-├── docs/                  # Documentation
-├── build/                 # Build output (gitignored)
-├── vcpkg_installed/       # Installed packages (gitignored)
-├── CMakeLists.txt         # Build configuration
-├── CMakePresets.json      # CMake preset configurations
-├── vcpkg.json            # Dependency manifest
-├── .gitignore            # Git ignore rules
-├── LICENSE               # MIT license
-└── README.md             # This file
+├── src/                     # Source code
+│   ├── main.cpp            # Entry point
+│   ├── public/             # Public headers (interfaces)
+│   │   ├── core/           # Core game systems
+│   │   ├── rendering/      # Graphics and rendering
+│   │   ├── physics/        # Physics simulation
+│   │   ├── input/          # Input handling
+│   │   └── utils/          # Utility functions
+│   └── private/            # Implementation files
+│       ├── core/           # Core system implementations  
+│       ├── rendering/      # Rendering implementations
+│       ├── physics/        # Physics implementations
+│       ├── input/          # Input implementations
+│       └── utils/          # Utility implementations
+├── assets/                 # Game assets
+│   ├── textures/           # Images, sprites, tilesets
+│   ├── audio/              # Sound effects and music
+│   └── maps/               # Tiled map files (.tmx)
+├── scripts/                # Build and utility scripts
+│   ├── setup, build, run   # Platform-agnostic entry points
+│   ├── unix/               # macOS/Linux scripts
+│   ├── windows/            # Windows batch scripts
+│   └── powershell/         # Windows PowerShell scripts
+├── ide-configs/            # IDE configuration templates
+│   ├── vscode/             # VS Code settings
+│   ├── clion/              # CLion settings
+│   └── visual-studio/      # Visual Studio settings
+├── docs/                   # Documentation
+├── build/                  # Build output (gitignored)
+├── vcpkg_installed/        # Installed packages (gitignored)
+├── CMakeLists.txt          # Build configuration
+├── CMakePresets.json       # CMake preset configurations
+├── Makefile                # Convenient build aliases
+├── vcpkg.json              # Dependency manifest
+├── .gitignore              # Git ignore rules
+├── LICENSE                 # MIT license
+└── README.md               # This file
 ```
 
 ## 🎯 Usage
 
-This template provides a complete setup for 2D game development:
+This template provides a complete setup for 2D game development with a modern C++ architecture:
 
-1. **Clone and Build**: Follow the build instructions above
-2. **Start Coding**: Develop your game in the `src/` directory
+### Getting Started
+1. **Clone and Setup**: Use `make setup` for automatic configuration
+2. **Start Coding**: Develop your game using the provided class structure
 3. **Add Assets**: Place textures, audio, and maps in `assets/`
-4. **Configure**: Modify `CMakeLists.txt` as needed for your project
+4. **Build and Run**: Use `make run` for quick iteration
 
-### Example Code Structure
+### Code Architecture
+
+The template follows a **public/private header pattern** for clean separation:
+
+- **`src/public/`** - Interface definitions (what other systems can use)
+- **`src/private/`** - Implementation details (how systems work internally)
+
+**Core Systems Included:**
+- **Game** - Main game loop and system coordination
+- **Window** - SDL2 window management  
+- **Renderer** - OpenGL rendering pipeline
+- **Physics** - Box2D physics integration (gravity optional)
+- **Input** - Keyboard and mouse handling
+- **Logger** - Structured logging with spdlog
+
+### Example Usage
 
 ```cpp
-#include <SDL.h>
-#include <box2d/box2d.h>
-#include <glm/glm.hpp>
-#include <spdlog/spdlog.h>
+// Example: Adding gravity to your game
+auto game = std::make_unique<core::Game>();
+game->Initialize();
 
-int main(int argc, char* argv[]) {
-    // Initialize SDL
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-    
-    // Your game code here...
-    
-    SDL_Quit();
-    return 0;
-}
+// Get physics system and enable gravity
+auto* physics = game->GetPhysics();
+physics->SetEarthGravity();  // or SetLowGravity() for platformers
+
+game->Run();
+```
+
+### Development Workflow
+
+```bash
+# Daily development cycle
+make run          # Quick build and test
+make debug        # Debug build for troubleshooting  
+make clean        # Clean slate rebuild
+make install      # Update dependencies (when adding new libs)
 ```
 
 ## 🛠️ Development Tips
 
-- **Build System**: Use `cmake --preset default` for the simplest build experience
-- **VSCode**: The included settings provide optimal C++ development experience
-- **Physics**: Box2D v3 uses a new API with world IDs instead of direct objects
+- **Build System**: Use `make setup` for first-time setup, then `make run` for daily development
+- **Cross-Platform**: All scripts work on Windows, macOS, and Linux automatically
+- **IDE Support**: Copy configs from `ide-configs/` for your preferred IDE (VS Code, CLion, Visual Studio)
+- **Physics**: Box2D v3 uses a new API with world IDs instead of direct objects - gravity is disabled by default
 - **Logging**: Use spdlog for all logging needs - it's fast and configurable
 - **Math**: GLM provides all the vector/matrix math you'll need
 - **Assets**: The build system automatically copies the `assets/` folder to your build directory
 - **Maps**: Use Tiled Map Editor to create levels, then load them with tmxlite
-- **Debug UI**: ImGui is perfect for runtime debugging and parameter tweaking
+- **Debug UI**: ImGui is included for runtime debugging and parameter tweaking
+- **Git Workflow**: Setup script can disconnect from template repo and create your own automatically
 
 ## 🔧 Customization
 

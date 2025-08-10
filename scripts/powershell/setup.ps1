@@ -1,0 +1,191 @@
+# SDL2 Template Setup Script for Windows (PowerShell)
+# This script handles first-time setup including vcpkg installation and initial build
+
+param(
+    [switch]$NoGitSetup
+)
+
+# Enable strict mode for better error handling
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+Write-Host "🚀 Setting up SDL2 Template..." -ForegroundColor Green
+Write-Host ""
+
+# Get project root directory
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+Set-Location $ProjectRoot
+
+Write-Host "📁 Project root: $PWD" -ForegroundColor Cyan
+Write-Host ""
+
+# Check if vcpkg exists
+$VcpkgPath = "C:\vcpkg"
+$ToolchainFile = "$VcpkgPath\scripts\buildsystems\vcpkg.cmake"
+
+if (-not (Test-Path $VcpkgPath)) {
+    Write-Host "📦 vcpkg not found. Installing vcpkg..." -ForegroundColor Yellow
+    Write-Host ""
+    
+    # Check if Git is available
+    try {
+        git --version | Out-Null
+    }
+    catch {
+        Write-Host "❌ Git not found. Please install Git first:" -ForegroundColor Red
+        Write-Host "   https://git-scm.com/downloads" -ForegroundColor White
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+    
+    # Check if Visual Studio or Build Tools are available
+    $vcVars = Get-Command "vcvars*.bat" -ErrorAction SilentlyContinue
+    $clExe = Get-Command "cl.exe" -ErrorAction SilentlyContinue
+    
+    if (-not $vcVars -and -not $clExe) {
+        Write-Host "❌ Visual Studio Build Tools not found." -ForegroundColor Red
+        Write-Host "Please install one of the following:" -ForegroundColor White
+        Write-Host "  - Visual Studio 2019/2022 with C++ workload" -ForegroundColor White
+        Write-Host "  - Build Tools for Visual Studio 2019/2022" -ForegroundColor White
+        Write-Host "  - Visual Studio Community (free)" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Download from: https://visualstudio.microsoft.com/downloads/" -ForegroundColor Cyan
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+    
+    Write-Host "⬇️  Cloning vcpkg to C:\vcpkg..." -ForegroundColor Blue
+    try {
+        git clone https://github.com/Microsoft/vcpkg.git $VcpkgPath
+    }
+    catch {
+        Write-Host "❌ Failed to clone vcpkg: $_" -ForegroundColor Red
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+    
+    Write-Host "🔧 Bootstrapping vcpkg..." -ForegroundColor Blue
+    try {
+        Push-Location $VcpkgPath
+        .\bootstrap-vcpkg.bat
+        Pop-Location
+    }
+    catch {
+        Write-Host "❌ Failed to bootstrap vcpkg: $_" -ForegroundColor Red
+        Pop-Location
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+    
+    Write-Host ""
+    Write-Host "💡 Consider adding vcpkg to your PATH:" -ForegroundColor Yellow
+    Write-Host "   Add C:\vcpkg to your system PATH environment variable" -ForegroundColor White
+    Write-Host ""
+}
+else {
+    Write-Host "✅ vcpkg found at $VcpkgPath" -ForegroundColor Green
+}
+
+# Git Repository Setup
+if (-not $NoGitSetup) {
+    Write-Host ""
+    Write-Host "🔗 Git Repository Setup" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Currently this project is connected to the SDL2 template repository." -ForegroundColor White
+    Write-Host "You have two options:" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  1. Keep connection to template (you can pull future template updates)" -ForegroundColor White
+    Write-Host "  2. Create your own independent repository (recommended for new projects)" -ForegroundColor White
+    Write-Host ""
+    
+    $repoChoice = Read-Host "Would you like to disconnect from the template and create your own repository? (Y/n)"
+    
+    if ($repoChoice -eq "" -or $repoChoice -match "^[Yy]") {
+        Write-Host "🔄 Creating independent repository..." -ForegroundColor Blue
+        
+        # Remove the template's git history
+        if (Test-Path ".git") {
+            Remove-Item -Recurse -Force ".git"
+        }
+        
+        try {
+            # Initialize a new git repository
+            git init
+            
+            # Add all files to the new repository
+            git add .
+            
+            # Create initial commit
+            git commit -m "Initial commit: SDL2 game template setup"
+            
+            Write-Host ""
+            Write-Host "✅ Independent repository created!" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "To connect to your own remote repository:" -ForegroundColor Yellow
+            Write-Host "  1. Create a new repository on GitHub/GitLab/etc." -ForegroundColor White
+            Write-Host "  2. Run: git remote add origin <your-repo-url>" -ForegroundColor White
+            Write-Host "  3. Run: git push -u origin main" -ForegroundColor White
+            Write-Host ""
+        }
+        catch {
+            Write-Host "❌ Failed to create git repository: $_" -ForegroundColor Red
+        }
+    }
+    else {
+        Write-Host "ℹ️  Keeping connection to template repository." -ForegroundColor Blue
+        Write-Host "   You can pull template updates with: git pull" -ForegroundColor White
+        Write-Host ""
+    }
+}
+
+# Install dependencies
+Write-Host "📚 Installing project dependencies..." -ForegroundColor Blue
+try {
+    & "$VcpkgPath\vcpkg.exe" install
+}
+catch {
+    Write-Host "❌ Failed to install dependencies: $_" -ForegroundColor Red
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+# Initial build
+Write-Host "🔨 Building project..." -ForegroundColor Blue
+if (-not (Test-Path "build")) {
+    New-Item -ItemType Directory -Name "build" | Out-Null
+}
+
+try {
+    Push-Location "build"
+    
+    # Configure project
+    cmake .. -DCMAKE_TOOLCHAIN_FILE="$ToolchainFile" -A x64
+    
+    # Build project
+    cmake --build . --config Release --parallel
+    
+    Pop-Location
+}
+catch {
+    Write-Host "❌ Build failed: $_" -ForegroundColor Red
+    Pop-Location
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+Write-Host ""
+Write-Host "🎉 Setup complete!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Quick start commands:" -ForegroundColor Cyan
+Write-Host "   .\scripts\run.ps1       # Build and run the game" -ForegroundColor White
+Write-Host "   .\scripts\build.ps1     # Build the project" -ForegroundColor White
+Write-Host "   .\scripts\clean.ps1     # Clean build files" -ForegroundColor White
+Write-Host "   .\scripts\install.ps1   # Install/update dependencies" -ForegroundColor White
+Write-Host ""
+Write-Host "🎮 To run your game now:" -ForegroundColor Cyan
+Write-Host "   .\build\Release\SDL2Template.exe" -ForegroundColor White
+Write-Host ""
+
+if (-not $NoGitSetup) {
+    Read-Host "Press Enter to continue"
+}

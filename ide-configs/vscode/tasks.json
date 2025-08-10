@@ -1,0 +1,98 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Setup Project",
+            "type": "shell",
+            "command": "./scripts/setup",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "First-time setup: install vcpkg, dependencies, and build"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "./scripts/build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build the project"
+        },
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "./scripts/build",
+            "args": ["Debug"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build the project in debug mode"
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": "./scripts/run",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "dependsOn": "Build",
+            "problemMatcher": [],
+            "detail": "Build and run the game"
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "./scripts/clean",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "Clean build artifacts"
+        },
+        {
+            "label": "Install Dependencies",
+            "type": "shell",
+            "command": "./scripts/install",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "Install/update project dependencies"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Cross-platform run script entry point
+
+set -e
+
+detect_platform() {
+    if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux"* ]]; then
+        echo "unix"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        echo "windows"
+    else
+        echo "unknown"
+    fi
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLATFORM=$(detect_platform)
+
+case $PLATFORM in
+    "unix")
+        "$SCRIPT_DIR/unix/run.sh"
+        ;;
+    "windows")
+        "$SCRIPT_DIR/windows/run.bat"
+        ;;
+    *)
+        echo "❌ Unsupported platform. Please run the appropriate script manually."
+        exit 1
+        ;;
+esac

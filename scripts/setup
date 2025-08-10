@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Cross-platform setup script entry point
+# Automatically detects platform and runs appropriate setup script
+
+set -e
+
+# Function to detect platform
+detect_platform() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "unix"
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        echo "unix"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        echo "windows"
+    else
+        echo "unknown"
+    fi
+}
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Detect platform
+PLATFORM=$(detect_platform)
+
+echo "🔍 Platform detected: $PLATFORM"
+
+# Run appropriate setup script
+case $PLATFORM in
+    "unix")
+        echo "🐧 Running Unix setup script..."
+        "$SCRIPT_DIR/unix/setup.sh"
+        ;;
+    "windows")
+        echo "🪟 Running Windows setup script..."
+        "$SCRIPT_DIR/windows/setup.bat"
+        ;;
+    *)
+        echo "❌ Unsupported platform: $OSTYPE"
+        echo ""
+        echo "Please run the appropriate script manually:"
+        echo "  Unix/Linux/macOS: ./scripts/unix/setup.sh"
+        echo "  Windows:          ./scripts/windows/setup.bat"
+        echo "  PowerShell:       ./scripts/powershell/setup.ps1"
+        exit 1
+        ;;
+esac

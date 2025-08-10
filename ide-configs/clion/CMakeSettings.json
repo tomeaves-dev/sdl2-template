@@ -1,0 +1,46 @@
+{
+  "configurations": [
+    {
+      "name": "Debug",
+      "generator": "Unix Makefiles",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}/build/debug",
+      "installRoot": "${projectDir}/install/debug",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Debug"
+        }
+      ],
+      "environments": []
+    },
+    {
+      "name": "Release",
+      "generator": "Unix Makefiles",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}/build/release",
+      "installRoot": "${projectDir}/install/release",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "$ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Release"
+        }
+      ],
+      "environments": []
+    }
+  ]
+}

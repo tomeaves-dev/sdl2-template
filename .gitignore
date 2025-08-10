@@ -6,15 +6,21 @@ cmake-build-*/
 # vcpkg installed packages
 vcpkg_installed/
 
-# IDE files - keep .vscode/settings.json but ignore user-specific files
-.vscode/launch.json
-.vscode/tasks.json
-.vscode/c_cpp_properties.json
-.vscode/*.code-workspace
+# IDE directories (actual usage - user-specific)
+.vscode/
+.idea/
 .vs/
+
+# But keep our template IDE configs
+!ide-configs/
+
+# Other IDE files
 *.swp
 *.swo
 *~
+*.user
+*.suo
+*.vcxproj.user
 
 # macOS
 .DS_Store
@@ -38,3 +44,17 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.temp
+
+# Package managers
+node_modules/
+.npm/
+
+# Archives
+*.zip
+*.tar.gz
+*.7z
+
+# Backup files
+*.bak
+*.orig
+*~
