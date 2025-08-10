@@ -17,6 +17,7 @@ namespace input {
 }
 
 namespace core {
+    
     class Game {
     public:
         Game();
