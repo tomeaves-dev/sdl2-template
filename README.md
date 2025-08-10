@@ -76,7 +76,7 @@ cd C:\vcpkg
 
 ```bash
 # Clone this template
-git clone https://github.com/tomeaves-dev/sdl2-template.git
+git clone https://github.com/tomeaves-dev/sdl2-template.git your-project-name
 cd sdl2-template
 
 # Install all dependencies (first time only)
@@ -96,7 +96,7 @@ cmake --build build
 
 ```bash
 # Clone this template
-git clone https://github.com/tomeaves-dev/sdl2-template.git
+git clone https://github.com/tomeaves-dev/sdl2-template.git your-project-name
 cd sdl2-template
 
 # Install all dependencies (first time only)
