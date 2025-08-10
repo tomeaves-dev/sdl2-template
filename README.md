@@ -72,6 +72,28 @@ cd C:\vcpkg
 
 ## 🔨 Build Instructions
 
+### Option 1: Using CMake Presets (Recommended)
+
+```bash
+# Clone this template
+git clone https://github.com/yourusername/sdl2-template.git
+cd sdl2-template
+
+# Install all dependencies (first time only)
+vcpkg install
+
+# Configure and build using presets
+cmake --preset default
+cmake --build build
+
+# Run the test program
+./build/SDL2Template      # macOS/Linux
+# OR
+.\build\SDL2Template.exe  # Windows
+```
+
+### Option 2: Manual CMake Configuration
+
 ```bash
 # Clone this template
 git clone https://github.com/yourusername/sdl2-template.git
@@ -111,12 +133,16 @@ sdl2-template/
 │   ├── textures/          # Images, sprites, tilesets
 │   ├── audio/             # Sound effects and music
 │   └── maps/              # Tiled map files (.tmx)
+├── .vscode/               # VSCode configuration
+│   └── settings.json      # Shared IDE settings
 ├── docs/                  # Documentation
 ├── build/                 # Build output (gitignored)
 ├── vcpkg_installed/       # Installed packages (gitignored)
 ├── CMakeLists.txt         # Build configuration
+├── CMakePresets.json      # CMake preset configurations
 ├── vcpkg.json            # Dependency manifest
 ├── .gitignore            # Git ignore rules
+├── LICENSE               # MIT license
 └── README.md             # This file
 ```
 
@@ -150,6 +176,8 @@ int main(int argc, char* argv[]) {
 
 ## 🛠️ Development Tips
 
+- **Build System**: Use `cmake --preset default` for the simplest build experience
+- **VSCode**: The included settings provide optimal C++ development experience
 - **Physics**: Box2D v3 uses a new API with world IDs instead of direct objects
 - **Logging**: Use spdlog for all logging needs - it's fast and configurable
 - **Math**: GLM provides all the vector/matrix math you'll need
