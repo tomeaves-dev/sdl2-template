@@ -187,6 +187,26 @@ int main(int argc, char* argv[]) {
 
 ## 🔧 Customization
 
+### Renaming Your Project
+
+To rename the project from "sdl2-template" to your game name:
+
+1. **Update CMakeLists.txt**: Change the project name on line 4:
+   ```cmake
+   project(YourGameName VERSION 1.0.0)
+   ```
+
+2. **Update vcpkg.json**: Change the name field:
+   ```json
+   {
+     "name": "yourgamename",
+     "version": "1.0.0",
+     ...
+   }
+   ```
+
+3. **Rebuild**: The executable will now be named `YourGameName` instead of `SDL2Template`
+
 ### Adding New Dependencies
 
 1. Add the package name to `vcpkg.json`
