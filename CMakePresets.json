@@ -1,0 +1,27 @@
+cat > CMakePresets.json << 'EOF'
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Config",
+      "description": "Default build using vcpkg",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "$env{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
+      "name": "windows",
+      "displayName": "Windows Config", 
+      "description": "Windows build using vcpkg",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default"
+    }
+  ]
+}
+EOF

@@ -1,0 +1,40 @@
+# Build directories
+build/
+out/
+cmake-build-*/
+
+# vcpkg installed packages
+vcpkg_installed/
+
+# IDE files - keep .vscode/settings.json but ignore user-specific files
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/c_cpp_properties.json
+.vscode/*.code-workspace
+.vs/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.dSYM/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
