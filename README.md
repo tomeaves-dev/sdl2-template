@@ -76,8 +76,19 @@ cd C:\vcpkg
 
 ```bash
 # Clone this template
-git clone https://github.com/tomeaves-dev/sdl2-template.git your-project-name
-cd sdl2-template
+git clone https://github.com/yourusername/sdl2-template.git my-awesome-game
+cd my-awesome-game
+
+# Disconnect from template repository and set up your own
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit from SDL2 template"
+
+# Connect to your own GitHub repository (create one first on GitHub)
+git remote add origin https://github.com/yourusername/my-awesome-game.git
+git branch -M main
+git push -u origin main
 
 # Install all dependencies (first time only)
 vcpkg install
@@ -96,8 +107,19 @@ cmake --build build
 
 ```bash
 # Clone this template
-git clone https://github.com/tomeaves-dev/sdl2-template.git your-project-name
-cd sdl2-template
+git clone https://github.com/yourusername/sdl2-template.git my-awesome-game
+cd my-awesome-game
+
+# Disconnect from template repository and set up your own
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit from SDL2 template"
+
+# Connect to your own GitHub repository (create one first on GitHub)
+git remote add origin https://github.com/yourusername/my-awesome-game.git
+git branch -M main
+git push -u origin main
 
 # Install all dependencies (first time only)
 vcpkg install
