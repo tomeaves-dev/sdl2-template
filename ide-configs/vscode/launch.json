@@ -5,7 +5,7 @@
             "name": "Debug Game",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/SDL2Template",
+            "program": "${workspaceFolder}/build/${cmake.buildKit}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
@@ -25,18 +25,24 @@
                 "engineLogging": false
             },
             "osx": {
-                "MIMode": "lldb"
+                "MIMode": "lldb",
+                "program": "${workspaceFolder}/build/${cmake.launchTargetFilename}"
             },
             "linux": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "/usr/bin/gdb"
+                "miDebuggerPath": "/usr/bin/gdb",
+                "program": "${workspaceFolder}/build/${cmake.launchTargetFilename}"
+            },
+            "windows": {
+                "MIMode": "gdb",
+                "program": "${workspaceFolder}/build/Debug/${cmake.launchTargetFilename}"
             }
         },
         {
             "name": "Release Game",
             "type": "cppdbg", 
             "request": "launch",
-            "program": "${workspaceFolder}/build/SDL2Template",
+            "program": "${workspaceFolder}/build/${cmake.launchTargetFilename}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
@@ -45,11 +51,17 @@
             "MIMode": "lldb",
             "preLaunchTask": "Build",
             "osx": {
-                "MIMode": "lldb"
+                "MIMode": "lldb",
+                "program": "${workspaceFolder}/build/${cmake.launchTargetFilename}"
             },
             "linux": {
                 "MIMode": "gdb",
-                "miDebuggerPath": "/usr/bin/gdb"
+                "miDebuggerPath": "/usr/bin/gdb",
+                "program": "${workspaceFolder}/build/${cmake.launchTargetFilename}"
+            },
+            "windows": {
+                "MIMode": "gdb",
+                "program": "${workspaceFolder}/build/Release/${cmake.launchTargetFilename}"
             }
         }
     ]

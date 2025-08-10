@@ -10,9 +10,19 @@ echo 🎮 Running SDL2 Template...
 set "PROJECT_ROOT=%~dp0..\.."
 pushd "%PROJECT_ROOT%"
 
+:: Detect the actual executable name from CMakeLists.txt
+set "EXECUTABLE_NAME=SDL2Template"
+if exist "CMakeLists.txt" (
+    for /f "tokens=1,2 delims=()" %%a in ('findstr /r "^project(" CMakeLists.txt') do (
+        for /f "tokens=1" %%c in ("%%b") do set "EXECUTABLE_NAME=%%c"
+    )
+)
+
+echo 🎯 Looking for executable: %EXECUTABLE_NAME%
+
 :: Check if executable exists (try both Debug and Release)
-set "EXECUTABLE_RELEASE=build\Release\SDL2Template.exe"
-set "EXECUTABLE_DEBUG=build\Debug\SDL2Template.exe"
+set "EXECUTABLE_RELEASE=build\Release\%EXECUTABLE_NAME%.exe"
+set "EXECUTABLE_DEBUG=build\Debug\%EXECUTABLE_NAME%.exe"
 set "EXECUTABLE="
 
 if exist "%EXECUTABLE_RELEASE%" (
@@ -56,9 +66,9 @@ echo.
 :: Run the game
 pushd build
 if "%BUILD_CONFIG%"=="Release" (
-    Release\SDL2Template.exe %*
+    Release\%EXECUTABLE_NAME%.exe %*
 ) else (
-    Debug\SDL2Template.exe %*
+    Debug\%EXECUTABLE_NAME%.exe %*
 )
 
 set "GAME_EXIT_CODE=%ERRORLEVEL%"

@@ -15,9 +15,26 @@ Write-Host "🎮 Running SDL2 Template..." -ForegroundColor Green
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $ProjectRoot
 
+# Detect the actual executable name from CMakeLists.txt
+$ExecutableName = "SDL2Template"  # Default fallback
+if (Test-Path "CMakeLists.txt") {
+    try {
+        $cmakeContent = Get-Content "CMakeLists.txt"
+        $projectLine = $cmakeContent | Where-Object { $_ -match "^project\(" } | Select-Object -First 1
+        if ($projectLine -match "project\((\w+)") {
+            $ExecutableName = $matches[1]
+        }
+    }
+    catch {
+        # If detection fails, use default
+    }
+}
+
+Write-Host "🎯 Looking for executable: $ExecutableName" -ForegroundColor Cyan
+
 # Check if executable exists (try both Debug and Release)
-$ExecutableRelease = "build\Release\SDL2Template.exe"
-$ExecutableDebug = "build\Debug\SDL2Template.exe"
+$ExecutableRelease = "build\Release\$ExecutableName.exe"
+$ExecutableDebug = "build\Debug\$ExecutableName.exe"
 $Executable = $null
 $BuildConfig = $null
 
@@ -84,10 +101,10 @@ try {
     Push-Location "build"
     
     if ($BuildConfig -eq "Release") {
-        $gameProcess = Start-Process -FilePath "Release\SDL2Template.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
+        $gameProcess = Start-Process -FilePath "Release\$ExecutableName.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
     }
     else {
-        $gameProcess = Start-Process -FilePath "Debug\SDL2Template.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
+        $gameProcess = Start-Process -FilePath "Debug\$ExecutableName.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
     }
     
     $exitCode = $gameProcess.ExitCode
