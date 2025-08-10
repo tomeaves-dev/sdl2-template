@@ -4,6 +4,7 @@
 #include "public/physics/Physics.h"
 #include "public/input/Input.h"
 #include "public/utils/Logger.h"
+#include "public/utils/Config.h"
 
 #include <SDL.h>
 
@@ -16,11 +17,17 @@ Game::Game() : m_isRunning(false) {
 
 Game::~Game() {
     Shutdown();
-    utils::Logger::Shutdown();
+    // Logger shutdown moved to main to avoid order issues
 }
 
 bool Game::Initialize() {
     spdlog::info("Initializing game systems...");
+    
+    // Load configuration first
+    auto config = utils::Config::Instance();
+    if (!config->Load("assets/settings.json")) {
+        spdlog::warn("Failed to load config, using defaults");
+    }
     
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -28,9 +35,17 @@ bool Game::Initialize() {
         return false;
     }
     
-    // Create and initialize systems in order
+    // Create and initialize systems using config values
     m_window = std::make_unique<rendering::Window>();
-    if (!m_window->Initialize("SDL2 Game Template", 1280, 720)) {
+    
+    // Get window settings from config
+    int width = config->GetInt("window.width", 1280);
+    int height = config->GetInt("window.height", 720);
+    std::string title = config->GetString("window.title", "SDL2 Game");
+    
+    spdlog::info("Creating window: {}x{} titled '{}'", width, height, title);
+    
+    if (!m_window->Initialize(title, width, height)) {
         spdlog::error("Failed to initialize window");
         return false;
     }
@@ -51,15 +66,33 @@ bool Game::Initialize() {
     
     m_isRunning = true;
     spdlog::info("Game initialized successfully!");
+    spdlog::info("Configuration loaded from: {}", config->GetConfigPath());
+    
+    // Log some config values to verify they're loaded
+    spdlog::info("Window config - Width: {}, Height: {}, Fullscreen: {}", 
+                width, height, config->GetBool("window.fullscreen", false));
+    spdlog::info("Graphics config - VSync: {}, AA: {}", 
+                config->GetBool("window.vsync", true), 
+                config->GetBool("graphics.antialiasing", true));
+    
     return true;
 }
 
 void Game::Run() {
     spdlog::info("Starting game loop...");
     
+    auto config = utils::Config::Instance();
+    bool vsync = config->GetBool("window.vsync", true);
+    bool showFPS = config->GetBool("game.show_fps", false);
+    
     Uint64 lastTime = SDL_GetPerformanceCounter();
     const float targetFPS = 60.0f;
     const float targetFrameTime = 1.0f / targetFPS;
+    
+    // FPS tracking
+    Uint64 fpsTimer = 0;
+    int frameCount = 0;
+    float currentFPS = 0.0f;
     
     while (m_isRunning) {
         // Calculate delta time
@@ -72,14 +105,29 @@ void Game::Run() {
             deltaTime = 0.05f;
         }
         
+        // FPS calculation
+        if (showFPS) {
+            frameCount++;
+            fpsTimer += (Uint64)(deltaTime * SDL_GetPerformanceFrequency());
+            
+            if (fpsTimer >= SDL_GetPerformanceFrequency()) { // 1 second
+                currentFPS = frameCount;
+                frameCount = 0;
+                fpsTimer = 0;
+                spdlog::info("FPS: {:.1f}", currentFPS);
+            }
+        }
+        
         HandleEvents();
         Update(deltaTime);
         Render();
         
-        // Simple frame rate limiting
-        float frameTime = (float)(SDL_GetPerformanceCounter() - currentTime) / SDL_GetPerformanceFrequency();
-        if (frameTime < targetFrameTime) {
-            SDL_Delay((Uint32)((targetFrameTime - frameTime) * 1000.0f));
+        // Frame rate limiting (only if vsync is disabled)
+        if (!vsync) {
+            float frameTime = (float)(SDL_GetPerformanceCounter() - currentTime) / SDL_GetPerformanceFrequency();
+            if (frameTime < targetFrameTime) {
+                SDL_Delay((Uint32)((targetFrameTime - frameTime) * 1000.0f));
+            }
         }
     }
     
@@ -91,13 +139,21 @@ void Game::Shutdown() {
         spdlog::info("Shutting down game systems...");
         m_isRunning = false;
         
+        // Save configuration first (while everything is still valid)
+        auto config = utils::Config::Instance();
+        config->Save("assets/settings.json");
+        
         // Cleanup systems in reverse order of initialization
         m_input.reset();
         m_physics.reset();
         m_renderer.reset();
         m_window.reset();
         
+        // Shutdown config system
+        config->Shutdown();
+        
         SDL_Quit();
+        
         spdlog::info("Game shutdown complete");
     }
 }
@@ -136,6 +192,8 @@ void Game::Render() {
 }
 
 void Game::HandleEvents() {
+    auto config = utils::Config::Instance();
+    
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         // Handle window close
@@ -146,6 +204,13 @@ void Game::HandleEvents() {
         // Handle escape key to quit
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             m_isRunning = false;
+        }
+        
+        // Example: Toggle FPS display with F1
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F1) {
+            bool showFPS = config->GetBool("game.show_fps", false);
+            config->SetBool("game.show_fps", !showFPS);
+            spdlog::info("FPS display {}", !showFPS ? "enabled" : "disabled");
         }
         
         // Pass events to input system

@@ -166,6 +166,13 @@ if [ ! -z "$PROJECT_NAME" ] && [ "$PROJECT_NAME" != "SDL2Template" ]; then
         echo "  ✅ Updated README.md"
     fi
     
+    # Update window title in settings.json
+    if [ -f "assets/settings.json" ]; then
+        sed -i.bak "s/\"title\": \"SDL2 Game\"/\"title\": \"$PROJECT_NAME\"/g" assets/settings.json
+        rm -f assets/settings.json.bak
+        echo "  ✅ Updated window title in assets/settings.json"
+    fi
+    
     echo ""
     echo "✅ Project renamed successfully!"
     echo "   Executable will be named: $PROJECT_NAME"

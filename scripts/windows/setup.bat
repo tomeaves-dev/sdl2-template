@@ -165,6 +165,12 @@ if not "%PROJECT_NAME%"=="" if not "%PROJECT_NAME%"=="SDL2Template" (
         echo   ✅ Updated README.md
     )
     
+    :: Update window title in settings.json
+    if exist "assets\settings.json" (
+        powershell -Command "(Get-Content assets\settings.json) -replace '\"title\": \"SDL2 Game\"', '\"title\": \"!PROJECT_NAME!\"' | Set-Content assets\settings.json"
+        echo   ✅ Updated window title in assets\settings.json
+    )
+    
     echo.
     echo ✅ Project renamed successfully!
     echo    Executable will be named: !PROJECT_NAME!.exe

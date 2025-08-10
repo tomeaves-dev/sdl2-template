@@ -185,6 +185,14 @@ if (-not [string]::IsNullOrEmpty($projectName) -and $projectName -ne "SDL2Templa
             Write-Host "  ✅ Updated README.md" -ForegroundColor Green
         }
         
+        # Update window title in settings.json
+        if (Test-Path "assets\settings.json") {
+            $content = Get-Content "assets\settings.json" -Raw
+            $content = $content -replace '"title": "SDL2 Game"', "`"title`": `"$projectName`""
+            Set-Content "assets\settings.json" $content
+            Write-Host "  ✅ Updated window title in assets\settings.json" -ForegroundColor Green
+        }
+        
         Write-Host ""
         Write-Host "✅ Project renamed successfully!" -ForegroundColor Green
         Write-Host "   Executable will be named: $projectName.exe" -ForegroundColor White

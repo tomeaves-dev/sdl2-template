@@ -1,0 +1,40 @@
+{
+    "window": {
+        "width": 1280,
+        "height": 720,
+        "fullscreen": false,
+        "vsync": true,
+        "title": "SDL2 Game"
+    },
+    "graphics": {
+        "renderer": "opengl",
+        "antialiasing": true,
+        "texture_filtering": "linear",
+        "shadow_quality": "medium"
+    },
+    "audio": {
+        "master_volume": 1.0,
+        "music_volume": 0.8,
+        "sfx_volume": 1.0,
+        "muted": false
+    },
+    "input": {
+        "mouse_sensitivity": 1.0,
+        "invert_mouse": false,
+        "key_bindings": {
+            "move_up": "W",
+            "move_down": "S",
+            "move_left": "A",
+            "move_right": "D",
+            "jump": "Space",
+            "action": "E",
+            "menu": "Escape"
+        }
+    },
+    "game": {
+        "difficulty": "normal",
+        "auto_save": true,
+        "show_fps": false,
+        "language": "en"
+    }
+}
