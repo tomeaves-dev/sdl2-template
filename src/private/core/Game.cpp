@@ -3,6 +3,7 @@
 #include "public/rendering/Renderer.h"
 #include "public/physics/Physics.h"
 #include "public/input/Input.h"
+#include "public/audio/AudioManager.h"
 #include "public/utils/Logger.h"
 #include "public/utils/Config.h"
 
@@ -63,6 +64,28 @@ bool Game::Initialize() {
     }
     
     m_input = std::make_unique<input::Input>();
+    
+    // Initialize audio manager
+    m_audioManager = std::make_unique<audio::AudioManager>();
+    if (!m_audioManager->Initialize()) {
+        spdlog::warn("Failed to initialize audio manager - continuing without audio");
+    } else {
+        // Load audio settings from config
+        float masterVolume = config->GetFloat("audio.master_volume", 1.0f);
+        float musicVolume = config->GetFloat("audio.music_volume", 0.8f);
+        float sfxVolume = config->GetFloat("audio.sfx_volume", 1.0f);
+        float ambientVolume = config->GetFloat("audio.ambient_volume", 0.8f);
+        bool muted = config->GetBool("audio.muted", false);
+        
+        m_audioManager->SetMasterVolume(masterVolume);
+        m_audioManager->SetCategoryVolume(audio::AudioCategory::Music, musicVolume);
+        m_audioManager->SetCategoryVolume(audio::AudioCategory::SFX, sfxVolume);
+        m_audioManager->SetCategoryVolume(audio::AudioCategory::Ambient, ambientVolume);
+        m_audioManager->SetMuted(muted);
+        
+        spdlog::info("Audio initialized - Master: {:.1f}, Music: {:.1f}, SFX: {:.1f}, Ambient: {:.1f}, Muted: {}", 
+                    masterVolume, musicVolume, sfxVolume, ambientVolume, muted);
+    }
     
     m_isRunning = true;
     spdlog::info("Game initialized successfully!");
@@ -141,9 +164,20 @@ void Game::Shutdown() {
         
         // Save configuration first (while everything is still valid)
         auto config = utils::Config::Instance();
+        
+        // Save current audio settings to config
+        if (m_audioManager && m_audioManager->IsInitialized()) {
+            config->SetFloat("audio.master_volume", m_audioManager->GetMasterVolume());
+            config->SetFloat("audio.music_volume", m_audioManager->GetCategoryVolume(audio::AudioCategory::Music));
+            config->SetFloat("audio.sfx_volume", m_audioManager->GetCategoryVolume(audio::AudioCategory::SFX));
+            config->SetFloat("audio.ambient_volume", m_audioManager->GetCategoryVolume(audio::AudioCategory::Ambient));
+            config->SetBool("audio.muted", m_audioManager->IsMuted());
+        }
+        
         config->Save("assets/settings.json");
         
         // Cleanup systems in reverse order of initialization
+        m_audioManager.reset();
         m_input.reset();
         m_physics.reset();
         m_renderer.reset();
@@ -162,6 +196,11 @@ void Game::Update(float deltaTime) {
     // Update input system
     if (m_input) {
         m_input->Update();
+    }
+    
+    // Update audio system (cleanup finished sounds)
+    if (m_audioManager) {
+        m_audioManager->Update();
     }
     
     // Step physics simulation
@@ -211,6 +250,35 @@ void Game::HandleEvents() {
             bool showFPS = config->GetBool("game.show_fps", false);
             config->SetBool("game.show_fps", !showFPS);
             spdlog::info("FPS display {}", !showFPS ? "enabled" : "disabled");
+        }
+        
+        // Example: Audio controls for testing
+        if (m_audioManager && m_audioManager->IsInitialized()) {
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_m:
+                        // Toggle mute
+                        m_audioManager->SetMuted(!m_audioManager->IsMuted());
+                        spdlog::info("Audio {}", m_audioManager->IsMuted() ? "muted" : "unmuted");
+                        break;
+                    case SDLK_MINUS:
+                        // Decrease master volume
+                        {
+                            float volume = std::max(0.0f, m_audioManager->GetMasterVolume() - 0.1f);
+                            m_audioManager->SetMasterVolume(volume);
+                            spdlog::info("Master volume: {:.1f}", volume);
+                        }
+                        break;
+                    case SDLK_EQUALS:
+                        // Increase master volume
+                        {
+                            float volume = std::min(1.0f, m_audioManager->GetMasterVolume() + 0.1f);
+                            m_audioManager->SetMasterVolume(volume);
+                            spdlog::info("Master volume: {:.1f}", volume);
+                        }
+                        break;
+                }
+            }
         }
         
         // Pass events to input system

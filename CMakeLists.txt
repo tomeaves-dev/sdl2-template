@@ -69,3 +69,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 # Copy assets folder to build directory
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+
+# Create audio asset directories if they don't exist
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/assets/audio/sfx)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/assets/audio/music)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/assets/audio/ambient)
