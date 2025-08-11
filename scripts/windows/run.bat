@@ -13,8 +13,19 @@ pushd "%PROJECT_ROOT%"
 :: Detect the actual executable name from CMakeLists.txt
 set "EXECUTABLE_NAME=SDL2Template"
 if exist "CMakeLists.txt" (
-    for /f "tokens=1,2 delims=()" %%a in ('findstr /r "^project(" CMakeLists.txt') do (
-        for /f "tokens=1" %%c in ("%%b") do set "EXECUTABLE_NAME=%%c"
+    :: Extract project name from CMakeLists.txt - handle both quoted and unquoted names
+    for /f "usebackq tokens=*" %%a in (`findstr /r "^project(" CMakeLists.txt`) do (
+        set "project_line=%%a"
+        :: Remove 'project(' prefix
+        set "project_line=!project_line:project(=!"
+        :: Extract first token (project name) and remove quotes/spaces
+        for /f "tokens=1 delims=, )" %%b in ("!project_line!") do (
+            set "EXECUTABLE_NAME=%%b"
+            :: Remove quotes if present
+            set "EXECUTABLE_NAME=!EXECUTABLE_NAME:"=!"
+            :: Trim spaces
+            for /f "tokens=* delims= " %%c in ("!EXECUTABLE_NAME!") do set "EXECUTABLE_NAME=%%c"
+        )
     )
 )
 
@@ -52,23 +63,27 @@ if "%EXECUTABLE%"=="" (
     )
 )
 
-:: Simple dependency check - if source files are newer, rebuild
-if exist "src" (
-    for /f %%i in ('forfiles /p src /m *.cpp /c "cmd /c echo @fdate @ftime" 2^>nul ^| sort /r ^| head -1') do set "NEWEST_SOURCE=%%i"
-    for %%i in ("%EXECUTABLE%") do set "EXECUTABLE_DATE=%%~ti"
-    
-    :: Note: This is a simplified check. For more robust checking, consider using PowerShell
-)
-
 echo 🚀 Starting game (%BUILD_CONFIG% build)...
 echo.
 
-:: Run the game
+:: Run the game - handle names with spaces properly
 pushd build
 if "%BUILD_CONFIG%"=="Release" (
-    Release\%EXECUTABLE_NAME%.exe %*
+    if "%EXECUTABLE_NAME%" NEQ "%EXECUTABLE_NAME: =%" (
+        :: Name has spaces, use quotes
+        "Release\%EXECUTABLE_NAME%.exe" %*
+    ) else (
+        :: Name has no spaces, no quotes needed
+        Release\%EXECUTABLE_NAME%.exe %*
+    )
 ) else (
-    Debug\%EXECUTABLE_NAME%.exe %*
+    if "%EXECUTABLE_NAME%" NEQ "%EXECUTABLE_NAME: =%" (
+        :: Name has spaces, use quotes
+        "Debug\%EXECUTABLE_NAME%.exe" %*
+    ) else (
+        :: Name has no spaces, no quotes needed
+        Debug\%EXECUTABLE_NAME%.exe %*
+    )
 )
 
 set "GAME_EXIT_CODE=%ERRORLEVEL%"
@@ -76,9 +91,9 @@ popd
 popd
 
 echo.
-echo 🏁 Game finished (exit code: %GAME_EXIT_CODE%)
-
-if not "%GAME_EXIT_CODE%"=="0" (
-    echo ⚠️  Game exited with error code %GAME_EXIT_CODE%
+if "%GAME_EXIT_CODE%"=="0" (
+    echo 🏁 Game finished successfully
+) else (
+    echo 🏁 Game finished with exit code: %GAME_EXIT_CODE%
     pause
 )

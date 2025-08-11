@@ -21,7 +21,7 @@ if (Test-Path "CMakeLists.txt") {
     try {
         $cmakeContent = Get-Content "CMakeLists.txt"
         $projectLine = $cmakeContent | Where-Object { $_ -match "^project\(" } | Select-Object -First 1
-        if ($projectLine -match "project\((\w+)") {
+        if ($projectLine -match "project\([`"'\s]*([^`"'\s,)]+)") {
             $ExecutableName = $matches[1]
         }
     }
@@ -96,15 +96,25 @@ if (Test-Path "src") {
 Write-Host "🚀 Starting game ($BuildConfig build)..." -ForegroundColor Blue
 Write-Host ""
 
-# Run the game
+# Run the game - handle names with spaces properly
 try {
     Push-Location "build"
     
     if ($BuildConfig -eq "Release") {
-        $gameProcess = Start-Process -FilePath "Release\$ExecutableName.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
+        $gameExe = "Release\$ExecutableName.exe"
     }
     else {
-        $gameProcess = Start-Process -FilePath "Debug\$ExecutableName.exe" -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
+        $gameExe = "Debug\$ExecutableName.exe"
+    }
+    
+    # Run the executable
+    if ($ExecutableName -match " ") {
+        # Name has spaces, use quotes
+        $gameProcess = Start-Process -FilePath $gameExe -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
+    }
+    else {
+        # Name has no spaces, no quotes needed
+        $gameProcess = Start-Process -FilePath $gameExe -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
     }
     
     $exitCode = $gameProcess.ExitCode
@@ -118,9 +128,10 @@ catch {
 }
 
 Write-Host ""
-Write-Host "🏁 Game finished (exit code: $exitCode)" -ForegroundColor Cyan
-
-if ($exitCode -ne 0) {
-    Write-Host "⚠️  Game exited with error code $exitCode" -ForegroundColor Yellow
+if ($exitCode -eq 0) {
+    Write-Host "🏁 Game finished successfully" -ForegroundColor Green
+}
+else {
+    Write-Host "🏁 Game finished with exit code: $exitCode" -ForegroundColor Yellow
     Read-Host "Press Enter to continue"
 }

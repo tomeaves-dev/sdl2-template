@@ -14,8 +14,8 @@ cd "$PROJECT_ROOT"
 # Detect the actual executable name from CMakeLists.txt
 EXECUTABLE_NAME="SDL2Template"  # Default fallback
 if [ -f "CMakeLists.txt" ]; then
-    # Extract project name from CMakeLists.txt
-    DETECTED_NAME=$(grep -E "^project\(" CMakeLists.txt | sed -E 's/project\(([^[:space:]]+).*/\1/' | head -1)
+    # Extract project name from CMakeLists.txt - handle both quoted and unquoted names
+    DETECTED_NAME=$(grep -E "^project\(" CMakeLists.txt | sed -E 's/project\(["\s]*([^"\s,)]+)["\s,).*/\1/' | head -1)
     if [ ! -z "$DETECTED_NAME" ]; then
         EXECUTABLE_NAME="$DETECTED_NAME"
     fi
@@ -42,9 +42,21 @@ fi
 echo "🚀 Starting game..."
 echo ""
 
-# Run the game
+# Run the game - handle names with spaces properly
 cd build
-./$EXECUTABLE_NAME "$@"  # Pass any command line arguments to the game
+if [[ "$EXECUTABLE_NAME" == *" "* ]]; then
+    # Name has spaces, use quotes
+    "./$EXECUTABLE_NAME" "$@"
+else
+    # Name has no spaces, no quotes needed
+    ./"$EXECUTABLE_NAME" "$@"
+fi
+
+GAME_EXIT_CODE=$?
 
 echo ""
-echo "🏁 Game finished."
+if [ $GAME_EXIT_CODE -eq 0 ]; then
+    echo "🏁 Game finished successfully."
+else
+    echo "🏁 Game finished with exit code: $GAME_EXIT_CODE"
+fi
