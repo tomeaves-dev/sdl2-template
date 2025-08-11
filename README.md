@@ -188,18 +188,28 @@ make  # or cmake --build . --config Release
 sdl2-template/
 ├── src/                     # Source code
 │   ├── main.cpp            # Entry point
-│   ├── public/             # Public headers (interfaces)
-│   │   ├── core/           # Core game systems
-│   │   ├── rendering/      # Graphics and rendering
-│   │   ├── physics/        # Physics simulation
-│   │   ├── input/          # Input handling
-│   │   └── utils/          # Utility functions
-│   └── private/            # Implementation files
-│       ├── core/           # Core system implementations  
-│       ├── rendering/      # Rendering implementations
-│       ├── physics/        # Physics implementations
-│       ├── input/          # Input implementations
-│       └── utils/          # Utility implementations
+│   ├── engine/             # Engine module
+│   │   ├── public/         # Engine API headers
+│   │   │   ├── core/       # Engine core (Engine singleton, Transform)
+│   │   │   ├── rendering/  # Graphics and rendering
+│   │   │   ├── physics/    # Physics simulation (RigidBody component)
+│   │   │   ├── input/      # Input handling
+│   │   │   ├── audio/      # Audio system
+│   │   │   ├── text/       # Text rendering
+│   │   │   └── utils/      # Engine utilities (ResourceManager)
+│   │   └── private/        # Engine implementations
+│   │       ├── core/       # Engine core implementations  
+│   │       ├── rendering/  # Rendering implementations
+│   │       ├── physics/    # Physics implementations
+│   │       ├── input/      # Input implementations
+│   │       ├── audio/      # Audio implementations
+│   │       ├── text/       # Text implementations
+│   │       └── utils/      # Utility implementations
+│   └── game/               # User game module
+│       ├── public/         # User's game headers
+│       │   └── GameApplication.h  # Main game class
+│       └── private/        # User's game implementations
+│           └── GameApplication.cpp # Game implementation
 ├── assets/                 # Game assets
 │   ├── textures/           # Images, sprites, tilesets
 │   ├── audio/              # Sound effects and music
@@ -227,41 +237,67 @@ sdl2-template/
 
 ## 🎯 Usage
 
-This template provides a complete setup for 2D game development with a modern C++ architecture:
+This template provides a complete setup for 2D game development with a modern C++ engine/game architecture:
 
 ### Getting Started
 1. **Clone and Setup**: Use `make setup` for automatic configuration and project naming
-2. **Start Coding**: Develop your game using the provided class structure
+2. **Start Coding**: Implement your game in `src/game/` using the Engine API
 3. **Add Assets**: Place textures, audio, and maps in `assets/`
 4. **Build and Run**: Use `make run` for quick iteration
 
 ### Code Architecture
 
-The template follows a **public/private header pattern** for clean separation:
+The template follows a **clean engine/game separation pattern**:
 
-- **`src/public/`** - Interface definitions (what other systems can use)
-- **`src/private/`** - Implementation details (how systems work internally)
+- **`src/engine/`** - Complete game engine with all systems
+- **`src/game/`** - Your game-specific code using the engine API
 
-**Core Systems Included:**
-- **Game** - Main game loop and system coordination
-- **Window** - SDL2 window management  
-- **Renderer** - OpenGL rendering pipeline
-- **Physics** - Box2D physics integration (gravity optional)
+**Engine Systems (accessed via `Engine::` static methods):**
+- **Engine** - Singleton system access and lifecycle management
+- **Renderer** - OpenGL rendering pipeline with automatic resource management
+- **Physics** - Box2D physics with fixed timestep and RigidBody components
 - **Input** - Keyboard and mouse handling
-- **Logger** - Structured logging with spdlog
+- **Audio** - Sound effects and music playback
+- **Resources** - Automatic texture loading and caching
+- **Text** - Font management and text rendering
+- **Config** - JSON configuration management
 
 ### Example Usage
 
 ```cpp
-// Example: Adding gravity to your game
-auto game = std::make_unique<core::Game>();
-game->Initialize();
-
-// Get physics system and enable gravity
-auto* physics = game->GetPhysics();
-physics->SetEarthGravity();  // or SetLowGravity() for platformers
-
-game->Run();
+// Example: Complete game object with Engine API
+class Player {
+public:
+    core::Transform transform;
+    rendering::Sprite sprite{"assets/player.png"};  // Automatic resource loading
+    std::unique_ptr<physics::RigidBody> rigidBody;
+    
+    void Initialize() {
+        rigidBody = std::make_unique<physics::RigidBody>(transform, physics::RigidBody::Type::Dynamic);
+        rigidBody->AddBoxCollider(32, 32);
+        core::Engine::Physics().SetGravity(0, 980);  // Enable gravity
+    }
+    
+    void Update(float deltaTime) {
+        // Clean Engine API access
+        if (core::Engine::Input().IsKeyPressed(SDL_SCANCODE_W)) {
+            rigidBody->ApplyForce({0, -500});
+        }
+        
+        // Manual physics sync (user choice)
+        transform.position = rigidBody->GetPosition();
+        transform.rotation = rigidBody->GetRotation();
+        
+        // Audio feedback
+        if (core::Engine::Input().IsKeyJustPressed(SDL_SCANCODE_SPACE)) {
+            core::Engine::Audio().PlaySound("jump.wav");
+        }
+    }
+    
+    void Render() {
+        core::Engine::Renderer().DrawSprite(&sprite, transform);
+    }
+};
 ```
 
 ### Development Workflow

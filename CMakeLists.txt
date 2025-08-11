@@ -36,11 +36,13 @@ find_path(TMXLITE_INCLUDE_DIR
 # Use GLOB to automatically find source files
 file(GLOB_RECURSE SOURCES 
     "src/main.cpp"
-    "src/private/*.cpp"
+    "src/engine/private/*.cpp"
+    "src/game/private/*.cpp"
 )
 
 file(GLOB_RECURSE HEADERS 
-    "src/public/*.h"
+    "src/engine/public/*.h"
+    "src/game/public/*.h"
 )
 
 # Create the executable with the project name
