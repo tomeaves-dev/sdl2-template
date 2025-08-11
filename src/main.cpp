@@ -20,10 +20,10 @@ int main(int argc, char* argv[]) {
         // Run the main game loop
         core::Engine::Run();
         
+        spdlog::info("Game finished successfully");
+        
         // Shutdown the engine
         core::Engine::Shutdown();
-        
-        spdlog::info("Game finished successfully");
         
     } catch (const std::exception& e) {
         spdlog::error("Unhandled exception: {}", e.what());
@@ -37,7 +37,5 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Shutdown logger last
-    utils::Logger::Shutdown();
     return 0;
 }

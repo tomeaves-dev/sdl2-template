@@ -1,6 +1,7 @@
 #include "game/public/GameApplication.h"
 #include "engine/public/core/Engine.h"
 #include "engine/public/input/Input.h"
+#include "engine/public/utils/Logger.h"
 #include <SDL.h>
 #include <spdlog/spdlog.h>
 

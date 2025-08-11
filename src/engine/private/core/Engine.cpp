@@ -223,7 +223,9 @@ void Engine::Shutdown() {
     s_instance->m_audioManager.reset();
     s_instance->m_resourceManager.reset();
     
-    // Shutdown config system
+    spdlog::info("Engine shutdown complete");
+    
+    // Shutdown config system after final log message
     auto configPtr = utils::Config::Instance();
     configPtr->Shutdown();
     
@@ -232,8 +234,6 @@ void Engine::Shutdown() {
     
     delete s_instance;
     s_instance = nullptr;
-    
-    spdlog::info("Engine shutdown complete");
 }
 
 bool Engine::IsInitialized() {
@@ -254,6 +254,11 @@ audio::AudioManager& Engine::Audio() {
 input::Input& Engine::Input() {
     assert(s_instance && s_instance->m_input && "Engine not initialized or Input not available");
     return *s_instance->m_input;
+}
+
+utils::Logger& Engine::Logger() {
+    static utils::Logger logger;
+    return logger;
 }
 
 physics::Physics& Engine::Physics() {

@@ -8,7 +8,7 @@ namespace physics { class Physics; }
 namespace rendering { class Renderer; class Window; }
 namespace save { class SaveManager; }
 namespace text { class FontManager; class TextRenderer; }
-namespace utils { class Config; class ResourceManager; }
+namespace utils { class Config; class ResourceManager; class Logger; }
 
 namespace core {
     class IGameApplication;
@@ -24,6 +24,7 @@ namespace core {
         // System access - Clean static API
         static audio::AudioManager& Audio();
         static input::Input& Input();
+        static utils::Logger& Logger();
         static physics::Physics& Physics();
         static rendering::Renderer& Renderer();
         static rendering::Window& Window();
