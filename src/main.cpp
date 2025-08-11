@@ -1,5 +1,5 @@
-#include "public/core/Game.h"
-#include "public/utils/Logger.h"
+#include "engine/public/core/Game.h"
+#include "engine/public/utils/Logger.h"
 #include <spdlog/spdlog.h>
 #include <exception>
 
@@ -10,19 +10,19 @@ int main(int argc, char* argv[]) {
     try {
         spdlog::info("Starting SDL2 Template...");
         
-        // Create game in a scope to ensure proper destruction order
-        {
-            core::Game game;
-            
-            if (!game.Initialize()) {
-                spdlog::error("Failed to initialize game");
-                utils::Logger::Shutdown();
-                return 1;
-            }
-            
-            game.Run();
-        } // Game destructor called here
+        // Create and run the game
+        core::Game game;
         
+        if (!game.Initialize()) {
+            spdlog::error("Failed to initialize game");
+            utils::Logger::Shutdown();
+            return 1;
+        }
+        
+        // Run the main game loop
+        game.Run();
+        
+        // Game shutdown is handled in destructor
         spdlog::info("Game finished successfully");
         
     } catch (const std::exception& e) {
