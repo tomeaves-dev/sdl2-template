@@ -123,28 +123,80 @@ else
     echo ""
 fi
 
-# Project Configuration
+# Project Configuration with validation
 echo ""
 echo "🏷️  Project Configuration"
 echo ""
 echo "Current project name: SDL2Template"
-read -p "Enter your project name (or press Enter to keep 'SDL2Template'): " PROJECT_NAME
 
-# Trim whitespace and validate project name
-PROJECT_NAME=$(echo "$PROJECT_NAME" | xargs)
-
-if [ ! -z "$PROJECT_NAME" ] && [ "$PROJECT_NAME" != "SDL2Template" ]; then
-    echo "🔧 Renaming project to: $PROJECT_NAME"
+# Function to validate project name
+validate_project_name() {
+    local name="$1"
     
-    # Validate project name (basic validation)
-    if [[ ! "$PROJECT_NAME" =~ ^[a-zA-Z][a-zA-Z0-9_-]*$ ]]; then
-        echo "⚠️  Warning: Project name should start with a letter and contain only letters, numbers, hyphens, and underscores"
-        echo "   Proceeding anyway..."
+    # Check if name is empty
+    if [[ -z "$name" ]]; then
+        return 1
     fi
     
-    # Update CMakeLists.txt
+    # Check if name starts with a letter
+    if [[ ! "$name" =~ ^[a-zA-Z] ]]; then
+        echo "❌ Project name must start with a letter"
+        return 1
+    fi
+    
+    # Check if name contains only valid characters
+    if [[ ! "$name" =~ ^[a-zA-Z][a-zA-Z0-9_-]*$ ]]; then
+        echo "❌ Project name can only contain letters, numbers, hyphens, and underscores"
+        return 1
+    fi
+    
+    # Check for reserved names
+    local reserved_names=("make" "cmake" "build" "run" "clean" "install" "test" "package")
+    for reserved in "${reserved_names[@]}"; do
+        if [[ "$name" == "$reserved" ]]; then
+            echo "❌ '$name' is a reserved name and cannot be used"
+            return 1
+        fi
+    done
+    
+    return 0
+}
+
+# Get project name with validation
+while true; do
+    read -p "Enter your project name (or press Enter to keep 'SDL2Template'): " PROJECT_NAME
+    
+    # Trim whitespace
+    PROJECT_NAME=$(echo "$PROJECT_NAME" | xargs)
+    
+    # If empty, keep default
+    if [[ -z "$PROJECT_NAME" ]]; then
+        PROJECT_NAME="SDL2Template"
+        break
+    fi
+    
+    # Validate the name
+    if validate_project_name "$PROJECT_NAME"; then
+        break
+    else
+        echo ""
+        echo "Please enter a valid project name:"
+        echo "  - Must start with a letter"
+        echo "  - Can contain letters, numbers, hyphens, and underscores"
+        echo "  - Cannot be a reserved name (make, cmake, build, run, etc.)"
+        echo ""
+    fi
+done
+
+if [[ "$PROJECT_NAME" != "SDL2Template" ]]; then
+    echo "🔧 Renaming project to: $PROJECT_NAME"
+    
+    # Update CMakeLists.txt with proper escaping for spaces
     if [ -f "CMakeLists.txt" ]; then
-        sed -i.bak "s/project(SDL2Template/project($PROJECT_NAME/g" CMakeLists.txt
+        # Use a more robust sed pattern that handles project names with special characters
+        sed -i.bak "s/project(SDL2Template/project(\"$PROJECT_NAME\"/g" CMakeLists.txt
+        # Also add LANGUAGES CXX to fix the CMake issue
+        sed -i.bak "s/project(\"$PROJECT_NAME\" VERSION 1.0.0)/project(\"$PROJECT_NAME\" VERSION 1.0.0 LANGUAGES CXX)/g" CMakeLists.txt
         rm -f CMakeLists.txt.bak
         echo "  ✅ Updated CMakeLists.txt"
     fi
@@ -180,9 +232,16 @@ if [ ! -z "$PROJECT_NAME" ] && [ "$PROJECT_NAME" != "SDL2Template" ]; then
 else
     echo "ℹ️  Keeping project name as 'SDL2Template'"
     echo ""
+    
+    # Still fix the CMakeLists.txt LANGUAGES issue
+    if [ -f "CMakeLists.txt" ]; then
+        sed -i.bak "s/project(SDL2Template VERSION 1.0.0)/project(SDL2Template VERSION 1.0.0 LANGUAGES CXX)/g" CMakeLists.txt
+        rm -f CMakeLists.txt.bak
+        echo "  ✅ Fixed CMakeLists.txt LANGUAGES issue"
+    fi
 fi
 
-# Install dependencies
+# Install dependencies again (in case there were changes)
 echo "📚 Installing project dependencies..."
 "$VCPKG_PATH/vcpkg" install
 
@@ -216,4 +275,8 @@ echo "   make build         # Same as ./scripts/build"
 echo "   make clean-all     # Same as ./scripts/clean"
 echo ""
 echo "🎮 To run your game now:"
-echo "   ./build/SDL2Template"
+if [[ "$PROJECT_NAME" == *" "* ]]; then
+    echo "   ./build/\"$PROJECT_NAME\""
+else
+    echo "   ./build/$PROJECT_NAME"
+fi

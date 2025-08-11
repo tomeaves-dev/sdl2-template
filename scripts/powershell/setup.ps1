@@ -138,30 +138,81 @@ if (-not $NoGitSetup) {
     }
 }
 
-# Project Configuration
+# Function to validate project name
+function Test-ProjectName {
+    param([string]$Name)
+    
+    # Check if name is empty
+    if ([string]::IsNullOrWhiteSpace($Name)) {
+        Write-Host "❌ Project name cannot be empty" -ForegroundColor Red
+        return $false
+    }
+    
+    # Check if name starts with a letter
+    if ($Name -notmatch "^[a-zA-Z]") {
+        Write-Host "❌ Project name must start with a letter" -ForegroundColor Red
+        return $false
+    }
+    
+    # Check if name contains only valid characters
+    if ($Name -notmatch "^[a-zA-Z][a-zA-Z0-9_-]*$") {
+        Write-Host "❌ Project name can only contain letters, numbers, hyphens, and underscores" -ForegroundColor Red
+        return $false
+    }
+    
+    # Check for reserved names
+    $reservedNames = @("make", "cmake", "build", "run", "clean", "install", "test", "package")
+    if ($reservedNames -contains $Name.ToLower()) {
+        Write-Host "❌ '$Name' is a reserved name and cannot be used" -ForegroundColor Red
+        return $false
+    }
+    
+    return $true
+}
+
+function Show-ValidationHelp {
+    Write-Host ""
+    Write-Host "Please enter a valid project name:" -ForegroundColor Yellow
+    Write-Host "  - Must start with a letter" -ForegroundColor White
+    Write-Host "  - Can contain letters, numbers, hyphens, and underscores" -ForegroundColor White
+    Write-Host "  - Cannot be a reserved name (make, cmake, build, run, etc.)" -ForegroundColor White
+    Write-Host ""
+}
+
+# Project Configuration with validation
 Write-Host ""
 Write-Host "🏷️  Project Configuration" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Current project name: SDL2Template" -ForegroundColor White
-$projectName = Read-Host "Enter your project name (or press Enter to keep 'SDL2Template')"
 
-# Trim whitespace
-$projectName = $projectName.Trim()
+do {
+    $projectName = Read-Host "Enter your project name (or press Enter to keep 'SDL2Template')"
+    
+    # Trim whitespace
+    $projectName = $projectName.Trim()
+    
+    # If empty, keep default
+    if ([string]::IsNullOrEmpty($projectName)) {
+        $projectName = "SDL2Template"
+        $validName = $true
+    }
+    else {
+        $validName = Test-ProjectName $projectName
+        if (-not $validName) {
+            Show-ValidationHelp
+        }
+    }
+} while (-not $validName)
 
-if (-not [string]::IsNullOrEmpty($projectName) -and $projectName -ne "SDL2Template") {
+if ($projectName -ne "SDL2Template") {
     Write-Host "🔧 Renaming project to: $projectName" -ForegroundColor Blue
     
-    # Validate project name (basic validation)
-    if ($projectName -notmatch "^[a-zA-Z][a-zA-Z0-9_-]*$") {
-        Write-Host "⚠️  Warning: Project name should start with a letter and contain only letters, numbers, hyphens, and underscores" -ForegroundColor Yellow
-        Write-Host "   Proceeding anyway..." -ForegroundColor White
-    }
-    
     try {
-        # Update CMakeLists.txt
+        # Update CMakeLists.txt with LANGUAGES fix
         if (Test-Path "CMakeLists.txt") {
             $content = Get-Content "CMakeLists.txt" -Raw
-            $content = $content -replace "project\(SDL2Template", "project($projectName"
+            $content = $content -replace "project\(SDL2Template", "project(`"$projectName`""
+            $content = $content -replace "project\(`"$projectName`" VERSION 1\.0\.0\)", "project(`"$projectName`" VERSION 1.0.0 LANGUAGES CXX)"
             Set-Content "CMakeLists.txt" $content
             Write-Host "  ✅ Updated CMakeLists.txt" -ForegroundColor Green
         }
@@ -202,11 +253,25 @@ if (-not [string]::IsNullOrEmpty($projectName) -and $projectName -ne "SDL2Templa
         Write-Host "❌ Failed to rename project: $_" -ForegroundColor Red
         Write-Host "   Continuing with original name..." -ForegroundColor White
         Write-Host ""
+        $projectName = "SDL2Template"
     }
 }
 else {
     Write-Host "ℹ️  Keeping project name as 'SDL2Template'" -ForegroundColor Blue
     Write-Host ""
+    
+    # Still fix the CMakeLists.txt LANGUAGES issue
+    try {
+        if (Test-Path "CMakeLists.txt") {
+            $content = Get-Content "CMakeLists.txt" -Raw
+            $content = $content -replace "project\(SDL2Template VERSION 1\.0\.0\)", "project(SDL2Template VERSION 1.0.0 LANGUAGES CXX)"
+            Set-Content "CMakeLists.txt" $content
+            Write-Host "  ✅ Fixed CMakeLists.txt LANGUAGES issue" -ForegroundColor Green
+        }
+    }
+    catch {
+        Write-Host "⚠️  Could not fix CMakeLists.txt: $_" -ForegroundColor Yellow
+    }
 }
 
 # Install dependencies
@@ -233,7 +298,8 @@ try {
     cmake .. -DCMAKE_TOOLCHAIN_FILE="$ToolchainFile" -A x64
     
     # Build project
-    cmake --build . --config Release --parallel
+    $cores = (Get-CimInstance -ClassName Win32_ComputerSystem).NumberOfLogicalProcessors
+    cmake --build . --config Release --parallel $cores
     
     Pop-Location
 }
@@ -254,7 +320,12 @@ Write-Host "   .\scripts\clean.ps1     # Clean build files" -ForegroundColor Whi
 Write-Host "   .\scripts\install.ps1   # Install/update dependencies" -ForegroundColor White
 Write-Host ""
 Write-Host "🎮 To run your game now:" -ForegroundColor Cyan
-Write-Host "   .\build\Release\SDL2Template.exe" -ForegroundColor White
+if ($projectName -match " ") {
+    Write-Host "   `".\build\Release\$projectName.exe`"" -ForegroundColor White
+}
+else {
+    Write-Host "   .\build\Release\$projectName.exe" -ForegroundColor White
+}
 Write-Host ""
 
 if (-not $NoGitSetup) {
