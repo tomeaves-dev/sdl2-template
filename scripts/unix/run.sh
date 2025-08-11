@@ -11,15 +11,33 @@ echo "🎮 Running SDL2 Template..."
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Detect the actual executable name from CMakeLists.txt
-EXECUTABLE_NAME="SDL2Template"  # Default fallback
-if [ -f "CMakeLists.txt" ]; then
-    # Extract project name from CMakeLists.txt - handle both quoted and unquoted names
-    DETECTED_NAME=$(grep -E "^project\(" CMakeLists.txt | sed -E 's/project\(["\s]*([^"\s,)]+)["\s,).*/\1/' | head -1)
-    if [ ! -z "$DETECTED_NAME" ]; then
-        EXECUTABLE_NAME="$DETECTED_NAME"
+# Function to extract project name from CMakeLists.txt
+get_project_name() {
+    if [ ! -f "CMakeLists.txt" ]; then
+        echo "SDL2Template"
+        return
     fi
-fi
+    
+    # Look for project(Name or project("Name" or project( Name
+    local project_line=$(grep -E "^project\(" CMakeLists.txt | head -1)
+    if [ -z "$project_line" ]; then
+        echo "SDL2Template"
+        return
+    fi
+    
+    # Extract the project name - handle quotes and spaces
+    local name=$(echo "$project_line" | sed -E 's/^project\([ ]*["]?([^",) ]+)["]?.*$/\1/')
+    
+    # Validate we got a real name
+    if [ -z "$name" ] || [ "$name" = "project" ]; then
+        echo "SDL2Template"
+    else
+        echo "$name"
+    fi
+}
+
+# Get the actual project name
+EXECUTABLE_NAME=$(get_project_name)
 
 echo "🎯 Looking for executable: $EXECUTABLE_NAME"
 
@@ -32,7 +50,7 @@ fi
 
 # Check if executable is older than source files (simple dependency check)
 if [ -d "src" ]; then
-    NEWEST_SOURCE=$(find src -name "*.cpp" -o -name "*.h" | xargs ls -t 2>/dev/null | head -n1)
+    NEWEST_SOURCE=$(find src -name "*.cpp" -o -name "*.h" 2>/dev/null | xargs ls -t 2>/dev/null | head -n1)
     if [ ! -z "$NEWEST_SOURCE" ] && [ "$NEWEST_SOURCE" -nt "$EXECUTABLE" ]; then
         echo "🔄 Source files updated. Rebuilding..."
         ./scripts/unix/build.sh

@@ -15,20 +15,37 @@ Write-Host "🎮 Running SDL2 Template..." -ForegroundColor Green
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $ProjectRoot
 
-# Detect the actual executable name from CMakeLists.txt
-$ExecutableName = "SDL2Template"  # Default fallback
-if (Test-Path "CMakeLists.txt") {
+# Function to extract project name from CMakeLists.txt
+function Get-ProjectName {
+    if (-not (Test-Path "CMakeLists.txt")) {
+        return "SDL2Template"
+    }
+    
     try {
         $cmakeContent = Get-Content "CMakeLists.txt"
         $projectLine = $cmakeContent | Where-Object { $_ -match "^project\(" } | Select-Object -First 1
-        if ($projectLine -match "project\([`"'\s]*([^`"'\s,)]+)") {
-            $ExecutableName = $matches[1]
+        
+        if (-not $projectLine) {
+            return "SDL2Template"
+        }
+        
+        # Extract project name - handle quotes and spaces
+        if ($projectLine -match "^project\(\s*[`"']?([^`"',)\s]+)") {
+            $projectName = $matches[1].Trim()
+            if ($projectName -and $projectName -ne "project") {
+                return $projectName
+            }
         }
     }
     catch {
-        # If detection fails, use default
+        # If parsing fails, use default
     }
+    
+    return "SDL2Template"
 }
+
+# Get the actual project name
+$ExecutableName = Get-ProjectName
 
 Write-Host "🎯 Looking for executable: $ExecutableName" -ForegroundColor Cyan
 
@@ -108,14 +125,7 @@ try {
     }
     
     # Run the executable
-    if ($ExecutableName -match " ") {
-        # Name has spaces, use quotes
-        $gameProcess = Start-Process -FilePath $gameExe -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
-    }
-    else {
-        # Name has no spaces, no quotes needed
-        $gameProcess = Start-Process -FilePath $gameExe -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
-    }
+    $gameProcess = Start-Process -FilePath $gameExe -ArgumentList $GameArgs -Wait -PassThru -NoNewWindow
     
     $exitCode = $gameProcess.ExitCode
     Pop-Location

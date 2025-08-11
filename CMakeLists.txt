@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Set the project name and version
+# Set the project name and version (LANGUAGES CXX is required when using VERSION)
 project(SDL2Template VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -43,7 +43,7 @@ file(GLOB_RECURSE HEADERS
     "src/public/*.h"
 )
 
-# Create the executable
+# Create the executable with the project name
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 # Add include directories
