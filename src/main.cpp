@@ -1,4 +1,4 @@
-#include "engine/public/core/Game.h"
+#include "engine/public/core/Engine.h"
 #include "engine/public/utils/Logger.h"
 #include <spdlog/spdlog.h>
 #include <exception>
@@ -10,27 +10,29 @@ int main(int argc, char* argv[]) {
     try {
         spdlog::info("Starting SDL2 Template...");
         
-        // Create and run the game
-        core::Game game;
-        
-        if (!game.Initialize()) {
-            spdlog::error("Failed to initialize game");
+        // Initialize the engine
+        if (!core::Engine::Initialize()) {
+            spdlog::error("Failed to initialize engine");
             utils::Logger::Shutdown();
             return 1;
         }
         
         // Run the main game loop
-        game.Run();
+        core::Engine::Run();
         
-        // Game shutdown is handled in destructor
+        // Shutdown the engine
+        core::Engine::Shutdown();
+        
         spdlog::info("Game finished successfully");
         
     } catch (const std::exception& e) {
         spdlog::error("Unhandled exception: {}", e.what());
+        core::Engine::Shutdown();
         utils::Logger::Shutdown();
         return 1;
     } catch (...) {
         spdlog::error("Unknown exception occurred");
+        core::Engine::Shutdown();
         utils::Logger::Shutdown();
         return 1;
     }
