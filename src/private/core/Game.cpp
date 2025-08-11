@@ -9,6 +9,7 @@
 #include "public/text/Text.h"
 #include "public/utils/Logger.h"
 #include "public/utils/Config.h"
+#include "public/save/SaveManager.h"
 
 #include <SDL.h>
 
@@ -37,6 +38,19 @@ bool Game::Initialize() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         spdlog::error("Failed to initialize SDL: {}", SDL_GetError());
         return false;
+    }
+
+    // Initialize SaveManager early (before other systems that might need to save config)
+    m_saveManager = std::make_unique<save::SaveManager>();
+
+    // Set game name from config for saves
+    std::string gameName = config->GetString("window.title", "SDL2Game");
+    m_saveManager->SetGameName(gameName);
+
+    if (!m_saveManager->Initialize()) {
+        spdlog::warn("Failed to initialize save manager - saves will not work");
+    } else {
+        spdlog::info("Save manager initialized - saves location: {}", m_saveManager->GetSaveDirectory());
     }
     
     // Create and initialize systems using config values

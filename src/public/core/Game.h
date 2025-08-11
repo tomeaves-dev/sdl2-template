@@ -26,6 +26,10 @@ namespace text {
     class Text;
 }
 
+namespace save {
+    class SaveManager;
+}
+
 namespace core {
     
     class Game {
@@ -44,6 +48,7 @@ namespace core {
         physics::Physics* GetPhysics() const { return m_physics.get(); }
         text::FontManager* GetFontManager() const { return m_fontManager.get(); }
         text::TextRenderer* GetTextRenderer() const { return m_textRenderer.get(); }
+        save::SaveManager* GetSaveManager() const { return m_saveManager.get(); }
         
     private:
         void Update(float deltaTime);
@@ -60,5 +65,6 @@ namespace core {
         std::unique_ptr<audio::AudioManager> m_audioManager;
         std::unique_ptr<text::FontManager> m_fontManager;
         std::unique_ptr<text::TextRenderer> m_textRenderer;
+        std::unique_ptr<save::SaveManager> m_saveManager;
     };
 }
