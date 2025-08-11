@@ -20,6 +20,12 @@ namespace audio {
     class AudioManager;
 }
 
+namespace text {
+    class FontManager;
+    class TextRenderer;
+    class Text;
+}
+
 namespace core {
     
     class Game {
@@ -36,6 +42,8 @@ namespace core {
         // System access (for advanced usage)
         audio::AudioManager* GetAudioManager() const { return m_audioManager.get(); }
         physics::Physics* GetPhysics() const { return m_physics.get(); }
+        text::FontManager* GetFontManager() const { return m_fontManager.get(); }
+        text::TextRenderer* GetTextRenderer() const { return m_textRenderer.get(); }
         
     private:
         void Update(float deltaTime);
@@ -50,5 +58,7 @@ namespace core {
         std::unique_ptr<physics::Physics> m_physics;
         std::unique_ptr<input::Input> m_input;
         std::unique_ptr<audio::AudioManager> m_audioManager;
+        std::unique_ptr<text::FontManager> m_fontManager;
+        std::unique_ptr<text::TextRenderer> m_textRenderer;
     };
 }

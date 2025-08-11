@@ -4,6 +4,9 @@
 #include "public/physics/Physics.h"
 #include "public/input/Input.h"
 #include "public/audio/AudioManager.h"
+#include "public/text/FontManager.h"
+#include "public/text/TextRenderer.h"
+#include "public/text/Text.h"
 #include "public/utils/Logger.h"
 #include "public/utils/Config.h"
 
@@ -85,6 +88,50 @@ bool Game::Initialize() {
         
         spdlog::info("Audio initialized - Master: {:.1f}, Music: {:.1f}, SFX: {:.1f}, Ambient: {:.1f}, Muted: {}", 
                     masterVolume, musicVolume, sfxVolume, ambientVolume, muted);
+    }
+    
+    // Initialize text systems
+    m_fontManager = std::make_unique<text::FontManager>();
+    if (!m_fontManager->Initialize()) {
+        spdlog::warn("Failed to initialize font manager - continuing without text rendering");
+    } else {
+        // Load default system font with fallbacks
+        bool fontLoaded = false;
+        
+        // Try to load from config first
+        std::string defaultFont = config->GetString("text.default_font", "arial.ttf");
+        int defaultSize = config->GetInt("text.default_size", 16);
+        
+        if (m_fontManager->LoadFont(defaultFont, "default", defaultSize)) {
+            fontLoaded = true;
+        } else {
+            // Try common system fonts as fallbacks
+            std::vector<std::pair<std::string, std::string>> fallbacks = {
+                {"Arial.ttf", "Arial"},
+                {"arial.ttf", "Arial"},
+                {"Helvetica.ttc", "Helvetica"},
+                {"DejaVuSans.ttf", "DejaVu Sans"},
+                {"LiberationSans-Regular.ttf", "Liberation Sans"},
+                {"calibri.ttf", "Calibri"},
+                {"tahoma.ttf", "Tahoma"}
+            };
+            
+            for (const auto& [filename, displayName] : fallbacks) {
+                if (m_fontManager->LoadFont(filename, "default", defaultSize)) {
+                    fontLoaded = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!fontLoaded) {
+            spdlog::warn("Could not load any font - text rendering may not work");
+        }
+        
+        m_textRenderer = std::make_unique<text::TextRenderer>();
+        if (!m_textRenderer->Initialize(m_fontManager.get(), m_renderer.get())) {
+            spdlog::warn("Failed to initialize text renderer");
+        }
     }
     
     m_isRunning = true;
@@ -177,6 +224,8 @@ void Game::Shutdown() {
         config->Save("assets/settings.json");
         
         // Cleanup systems in reverse order of initialization
+        m_textRenderer.reset();
+        m_fontManager.reset();
         m_audioManager.reset();
         m_input.reset();
         m_physics.reset();
@@ -203,6 +252,11 @@ void Game::Update(float deltaTime) {
         m_audioManager->Update();
     }
     
+    // Update text renderer (cache management)
+    if (m_textRenderer) {
+        m_textRenderer->Update();
+    }
+    
     // Step physics simulation
     if (m_physics) {
         m_physics->Step(deltaTime);
@@ -221,6 +275,11 @@ void Game::Render() {
     
     // TODO: Add your rendering code here
     // Example: Render sprites, UI, particles, etc.
+    
+    // Text rendering system is available via m_textRenderer
+    // Example usage:
+    // text::Text myText("Hello World", "default", text::Text::White);
+    // m_textRenderer->DrawText(myText, {100, 100});
     
     m_renderer->EndFrame();
     

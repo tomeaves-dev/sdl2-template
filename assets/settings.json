@@ -20,6 +20,34 @@
         "ambient_volume": 0.8,
         "muted": false
     },
+    "text": {
+        "default_font": "arial.ttf",
+        "default_size": 16,
+        "render_quality": "high",
+        "cache_size_mb": 64,
+        "antialiasing": true,
+        "default_color": [1.0, 1.0, 1.0, 1.0],
+        
+        "kerning": {
+            "enabled": true,
+            "adjustment": 0.0
+        },
+        
+        "outline": {
+            "enabled": false,
+            "thickness": 1,
+            "color": [0.0, 0.0, 0.0, 1.0]
+        },
+        
+        "shadow": {
+            "enabled": false,
+            "offset": [2, 2],
+            "color": [0.0, 0.0, 0.0, 0.5]
+        },
+        
+        "hinting": "normal",
+        "subpixel_rendering": false
+    },
     "input": {
         "mouse_sensitivity": 1.0,
         "invert_mouse": false,
